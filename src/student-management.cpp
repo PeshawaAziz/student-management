@@ -3,31 +3,24 @@
 #include <vector>
 #include <string>
 #include <bits/stdc++.h>
-#include <Windows.h>
+#include <windows.h>
+#include "json.hpp"
 
 using namespace std;
-
-bool ended, print;
+using json = nlohmann::json;
 
 class Student
 {
 public:
+    int id;
     string firstName;
     string lastName;
-    // double mark;
-    int id;
     vector<double> marks;
 };
 
-int indexOf(vector<string> array, string item)
+bool isEmpty(std::ifstream &pFile)
 {
-    for (int i = 0; i < array.size(); i++)
-    {
-        if (array[i] == item)
-        {
-            return i;
-        }
-    }
+    return pFile.peek() == std::ifstream::traits_type::eof();
 }
 
 vector<string> splitToWords(string text)
@@ -52,6 +45,126 @@ vector<string> splitToWords(string text)
     return words;
 }
 
+void getSubjects(vector<string> &subjects)
+{
+    // get subjects from json file
+    json j;
+    ifstream file("subjects.json");
+    vector<string> _subjects;
+
+    if (isEmpty(file))
+    {
+        j["subjects"] = {};
+    }
+    else
+    {
+        file >> j;
+    }
+
+    for (int x = 0; x < j["subjects"].size(); x++)
+    {
+        string subject = j["subjects"][x];
+        _subjects.push_back(subject);
+    }
+    subjects = _subjects;
+
+    file.close();
+}
+
+void setSubjects(vector<string> subjects)
+{
+    // set subjects to the json file
+    json j;
+    ofstream file("subjects.json");
+
+    j["subjects"] = subjects;
+
+    file << j;
+    file.close();
+}
+
+void getStudents(vector<Student> &students)
+{
+    // get students from json file
+    json j;
+    ifstream file("students.json");
+    vector<Student> _students;
+
+    if (isEmpty(file))
+    {
+        j["students"] = {};
+    }
+    else
+    {
+        file >> j;
+    }
+
+    for (int x = 0; x < j["students"].size(); x++)
+    {
+        Student student;
+        student.id = j["students"][x]["id"];
+        student.firstName = j["students"][x]["firstName"];
+        student.lastName = j["students"][x]["lastName"];
+
+        for (int y = 0; y < j["students"][x]["marks"].size(); y++)
+        {
+            double mark = j["students"][x]["marks"][y];
+            student.marks.push_back(mark);
+        }
+
+        _students.push_back(student);
+    }
+
+    students = _students;
+    file.close();
+}
+
+void setStudents(vector<Student> students)
+{
+    // set students to the json file
+    json j;
+    ofstream file("students.json");
+
+    j["students"] = j.array();
+
+    for (int x = 0; x < students.size(); x++)
+    {
+        j["students"][x] = j.object();
+        j["students"][x]["id"] = students[x].id;
+        j["students"][x]["firstName"] = students[x].firstName;
+        j["students"][x]["lastName"] = students[x].lastName;
+        j["students"][x]["marks"] = students[x].marks;
+    }
+
+    file << j;
+    file.close();
+}
+
+void writeData(vector<Student> students, vector<string> subjects)
+{
+    setSubjects(subjects);
+    setStudents(students);
+}
+
+void readData(vector<Student> &students, vector<string> &subjects)
+{
+    getSubjects(subjects);
+    getStudents(students);
+}
+
+int indexOf(vector<string> array, string item)
+{
+    for (int i = 0; i < array.size(); i++)
+    {
+        if (array[i] == item)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 void printStudents(vector<Student> students, vector<string> subjects)
 {
     system("CLS");
@@ -69,7 +182,7 @@ void printStudents(vector<Student> students, vector<string> subjects)
     for (int i = 0; i < subjects.size(); i++)
     {
         cout << left
-             << setw(10)
+             << setw(15)
              << subjects[i];
     }
     cout << endl;
@@ -100,7 +213,7 @@ void printStudents(vector<Student> students, vector<string> subjects)
         for (int j = 0; j < students[i].marks.size(); j++)
         {
             cout << left
-                 << setw(10)
+                 << setw(15)
                  << students[i].marks[j];
         }
         cout << endl;
@@ -141,33 +254,108 @@ void printSubjects(vector<string> subjects)
 
 void printStudentManagementGuide()
 {
-    cout << "Add new student          ->   ADD \"First Name\" \"Last Name\" " << endl
-         << "Set one's mark           ->   SET \"First Name\" \"Last Name\" \"Mark\" " << endl
-         << "Delete a student         ->   DEL \"First Name\" \"Last Name\" " << endl
-         << "Delete a student's mark  ->   CLR \"First Name\" \"Last Name\" " << endl
+    cout << "Add new student          ->   ADD \"First Name\" \"Last Name\"" << endl
+         << "Set one's mark           ->   SET \"Id\" \"Subject\" \"Mark\"" << endl
+         << "Delete a student's mark  ->   CLR \"Id\" \"Subject\"" << endl
+         << "Delete a student         ->   DEL \"Id\"" << endl
          << "Back to menu             ->   BACK" << endl;
-}
-
-void printAverageMarksGuide()
-{
-    cout << "Show the average  ->   CAL" << endl
-         << "Back to menu      ->   BACK" << endl;
 }
 
 void printSubjectManagementGuide()
 {
-    cout << "Add new subject          ->   ADD \"Title\" " << endl
-         << "Delete a subject         ->   DEL \"Title\" " << endl
+    cout << "Add new subject          ->   ADD \"Title\"" << endl
+         << "Delete a subject         ->   DEL \"Title\"" << endl
          << "Back to menu             ->   BACK" << endl;
 }
 
-void subjectManagement(vector<Student> &students, vector<string> &subjects)
+void printResetDataGuide()
+{
+    cout << "Remove all students      ->   REM students" << endl
+         << "Remove all subjects      ->   REM subjects" << endl
+         << "Back to menu             ->   BACK" << endl;
+}
+
+void resetData(vector<Student> &students, vector<string> &subjects, bool &ended)
 {
     system("CLS");
 
     printSubjects(subjects);
+    printStudents(students, subjects);
 
-    // input, inputWords and students variables
+    // input, inputWords
+    string input;
+    vector<string> inputWords;
+
+    printResetDataGuide();
+
+    // get input and store it in input
+    cout << "\n\n> ";
+    getline(cin, input);
+    // split input to words and store it in inputWords
+    inputWords = splitToWords(input);
+
+    if (inputWords[0] == "REM")
+    {
+        if (inputWords[1] == "students")
+        {
+            string sure = "";
+            cout << "Are you sure you want to remove all students? (YES / NO): ";
+            cin >> sure;
+
+            if (sure == "YES")
+            {
+                students.clear();
+            }
+            else if (sure == "NO")
+            {
+                cout << "Cancelled" << endl;
+            }
+
+            Sleep(1000);
+            system("CLS");
+        }
+        else if (inputWords[1] == "subjects")
+        {
+            string sure = "";
+            cout << "Are you sure you want to remove all students? (YES / NO): ";
+            cin >> sure;
+
+            if (sure == "YES")
+            {
+                subjects.clear();
+            }
+            else if (sure == "NO")
+            {
+                cout << "Cancelled" << endl;
+            }
+
+            Sleep(1000);
+            system("CLS");
+        }
+    }
+    else if (inputWords[0] == "BACK")
+    {
+        ended = true;
+
+        system("CLS");
+    }
+    else if (inputWords[0] != "")
+    {
+        cout << "Wrong input!";
+
+        Sleep(2000);
+        system("CLS");
+    }
+
+    writeData(students, subjects);
+}
+
+void subjectManagement(vector<Student> &students, vector<string> &subjects, bool &ended)
+{
+    system("CLS");
+    printSubjects(subjects);
+
+    // input, inputWords
     string input;
     vector<string> inputWords;
 
@@ -187,6 +375,19 @@ void subjectManagement(vector<Student> &students, vector<string> &subjects)
             if (inputWords.size() == 2)
             {
                 subjects.push_back(inputWords[1]);
+
+                vector<double> _marks;
+
+                // Add the subject to all the students
+                for (int i = 0; i < subjects.size(); i++)
+                {
+                    _marks.push_back(0);
+                }
+
+                for (int i = 0; i < students.size(); i++)
+                {
+                    students[i].marks = _marks;
+                }
             }
         }
         else
@@ -209,7 +410,7 @@ void subjectManagement(vector<Student> &students, vector<string> &subjects)
                 {
                     subjects.erase(subjects.begin() + i);
 
-                    // erase every student's mark with the subject
+                    // erase every student's mark for that subject
                     for (int j = 0; j < students.size(); j++)
                     {
                         students[j].marks.erase(students[j].marks.begin() + i);
@@ -222,7 +423,6 @@ void subjectManagement(vector<Student> &students, vector<string> &subjects)
     {
         ended = true;
 
-        // clear the screen
         system("CLS");
     }
     else if (inputWords[0] != "")
@@ -232,63 +432,15 @@ void subjectManagement(vector<Student> &students, vector<string> &subjects)
         Sleep(2000);
         system("CLS");
     }
+
+    writeData(students, subjects);
 }
 
-// void averageMarks(vector<Student> &students)
-// {
-//     // input, inputWords and students variables
-//     string input;
-//     vector<string> inputWords;
-
-//     if (print == false)
-//     {
-//         printAverageMarksGuide();
-//         print = true;
-//     }
-
-//     // get input and store it in input
-//     cout << "> ";
-//     getline(cin, input);
-//     // split input to words and store it in inputWords
-//     inputWords = splitToWords(input);
-
-//     double average = 0;
-//     double sum = 0;
-
-//     if (inputWords[0] == "CAL")
-//     {
-//         if (students.size() == 0)
-//         {
-//             cout << "\nNo students!\n";
-//         }
-//         else if (students.size() >= 1)
-//         {
-//             for (int i = 0; i < students.size(); i++)
-//             {
-//                 sum += students[i].mark;
-//             }
-//             average = sum / students.size();
-//             cout << "\nThe average is " << average << "\n";
-//         }
-//     }
-//     else if (inputWords[0] == "BACK")
-//     {
-//         ended = true;
-//     }
-//     else if (inputWords[0] != "")
-//     {
-//         cout << "Wrong input!";
-
-//         Sleep(2000);
-//         system("CLS");
-//     }
-// }
-
-void studentManagement(vector<Student> &students, vector<string> &subjects)
+void studentManagement(vector<Student> &students, vector<string> &subjects, bool &ended)
 {
     printStudents(students, subjects);
 
-    // input, inputWords and students variables
+    // input, inputWords
     string input;
     vector<string> inputWords;
 
@@ -372,29 +524,30 @@ void studentManagement(vector<Student> &students, vector<string> &subjects)
     else if (inputWords[0] == "BACK")
     {
         ended = true;
-
-        // clear the screen
         system("CLS");
     }
     else if (inputWords[0] != "")
     {
         cout << "Wrong input!";
-
         Sleep(2000);
         system("CLS");
     }
+
+    writeData(students, subjects);
 }
 
 int main()
 {
+    bool ended, print;
     vector<Student> students;
-    vector<string> subjects = {"Math", "Physics", "Chemistry"};
+    vector<string> subjects;
 
     while (true)
     {
+        readData(students, subjects);
         printStudents(students, subjects);
 
-        cout << "[1] Student Management\n[2] Subject Management\n[3] Average Student Marks\n[4] Exit The Program\n\n";
+        cout << "[1] Student Management\n[2] Subject Management\n[3] Reset Data\n[4] Exit The Program\n\n";
         cout << "Please enter your choice: (Number Only) ";
 
         string input;
@@ -409,7 +562,7 @@ int main()
 
             while (ended != true)
             {
-                studentManagement(students, subjects);
+                studentManagement(students, subjects, ended);
             }
         }
 
@@ -419,7 +572,7 @@ int main()
 
             while (ended != true)
             {
-                subjectManagement(students, subjects);
+                subjectManagement(students, subjects, ended);
             }
         }
 
@@ -427,11 +580,9 @@ int main()
         {
             system("CLS");
 
-            printStudents(students, subjects);
-
             while (ended != true)
             {
-                // averageMarks(students);
+                resetData(students, subjects, ended);
             }
         }
 
@@ -444,7 +595,6 @@ int main()
         else
         {
             cout << "\nWrong input!!";
-
             Sleep(1000);
         }
     }
