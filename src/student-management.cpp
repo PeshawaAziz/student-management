@@ -2,9 +2,10 @@
 #include <iomanip>
 #include <vector>
 #include <string>
-#include <bits/stdc++.h>
+#include <fstream>
 #include <windows.h>
 #include "json.hpp"
+#include "color.hpp"
 
 using namespace std;
 using json = nlohmann::json;
@@ -15,9 +16,34 @@ public:
     int id;
     string firstName;
     string lastName;
-    double avgMark = 0;
     vector<double> marks;
+    double avgMark = 0;
+    double sortMark = 0;
 };
+
+struct moreAvgMark
+{
+    inline bool operator()(const Student &a, const Student &b)
+    {
+        return a.avgMark > b.avgMark;
+    }
+};
+
+void calcAvgMarks(vector<Student> &students)
+{
+
+    for (int i = 0; i < students.size(); i++)
+    {
+        double sum = 0;
+        double avg = 0;
+        for (int j = 0; j < students[i].marks.size(); j++)
+        {
+            sum += students[i].marks[j];
+        }
+        avg = sum / (students[i].marks.size());
+        students[i].avgMark = avg;
+    }
+}
 
 bool isEmpty(std::ifstream &pFile)
 {
@@ -28,12 +54,18 @@ string toLowerCase(string s)
 {
     for (int i = 0; i < s.length(); i++)
     {
-        if (s[i] >= 'A' && s[i] <= 'Z')
-        {
-            s[i] = tolower(s[i]);
-        }
+        s[i] = tolower(s[i]);
     }
     return s;
+}
+
+vector<string> toLowerCaseVector(vector<string> v)
+{
+    for (int i = 0; i < v.size(); i++)
+    {
+        v[i] = toLowerCase(v[i]);
+    }
+    return v;
 }
 
 vector<string> splitToWords(string text)
@@ -185,29 +217,31 @@ void printStudents(vector<Student> students, vector<string> subjects)
     cout
         << left
         << setw(5)
-        << "Id"
+        << dye::purple("Id")
         << left
         << setw(15)
-        << "First Name"
+        << dye::purple("First Name")
         << left
         << setw(15)
-        << "Last Name";
+        << dye::purple("Last Name");
     for (int i = 0; i < subjects.size(); i++)
     {
         cout << left
              << setw(15)
-             << subjects[i];
+             << dye::light_green(subjects[i]);
     }
-    cout << endl;
+    cout << left
+         << setw(15)
+         << dye::blue("Average Mark")
+         << endl;
 
-    cout << "----------------------------------";
+    cout << "-----------------------------------";
 
     for (int i = 0; i < subjects.size(); i++)
     {
-        cout << "----------";
+        cout << "---------------";
     }
-
-    cout << endl;
+    cout << "---------------" << endl;
 
     for (int i = 0; i < students.size(); i++)
     {
@@ -225,11 +259,16 @@ void printStudents(vector<Student> students, vector<string> subjects)
         // print out the marks
         for (int j = 0; j < students[i].marks.size(); j++)
         {
-            cout << left
-                 << setw(15)
-                 << students[i].marks[j];
+            cout
+                << left
+                << setw(15)
+                << fixed << setprecision(2) << students[i].marks[j];
         }
-        cout << endl;
+        cout
+            << left
+            << setw(15)
+            << fixed << setprecision(2) << students[i].avgMark
+            << endl;
     }
 
     if (students.size() < 10)
@@ -267,39 +306,44 @@ void printSubjects(vector<string> subjects)
 
 void printStudentManagementGuide()
 {
-    cout << "Add new student          ->   ADD \"First Name\" \"Last Name\"" << endl
+    cout << hue::light_yellow
+         << "Add new student          ->   ADD \"First Name\" \"Last Name\"" << endl
          << "Set one's mark           ->   SET \"Id\" \"Subject\" \"Mark\"" << endl
          << "Delete a student's mark  ->   CLR \"Id\" \"Subject\"" << endl
          << "Delete a student         ->   DEL \"Id\"" << endl
-         << "Back to menu             ->   BACK" << endl;
+         << "Back to menu             ->   BACK" << hue::white << endl;
 }
 
 void printSubjectManagementGuide()
 {
-    cout << "Add new subject          ->   ADD \"Subject\"" << endl
+    cout << hue::light_yellow
+         << "Add new subject          ->   ADD \"Subject\"" << endl
          << "Delete a subject         ->   DEL \"Subject\"" << endl
-         << "Back to menu             ->   BACK" << endl;
+         << "Back to menu             ->   BACK" << hue::white << endl;
 }
 
 void printResetDataGuide()
 {
-    cout << "Remove all students      ->   REM students" << endl
+    cout << hue::light_yellow
+         << "Remove all students      ->   REM students" << endl
          << "Remove all subjects      ->   REM subjects" << endl
-         << "Back to menu             ->   BACK" << endl;
+         << "Back to menu             ->   BACK" << hue::white << endl;
 }
 
 void printSearchStudentsGuide()
 {
-    cout << "Search for a student     ->   SEARCH \"First Name\"" << endl
-         << "                         ->   SEARCH \"Last Name\"" << endl
-         << "                         ->   SEARCH \"First Name\" \"Last Name\"" << endl
-         << "Back to menu             ->   BACK" << endl;
+    cout << hue::light_yellow
+         << "Search by first name     ->   SEARCH \"First Name\"" << endl
+         << "Search by full name      ->   SEARCH \"First Name\" \"Last Name\"" << endl
+         << "Back to menu             ->   BACK" << hue::white << endl;
 }
 
 void printSortStudentsGuide()
 {
-    cout << "Sort students by average mark   ->   SORT AVG" << endl
-         << "Sort students by subject mark   ->   SORT \"Subject\"" << endl;
+    cout << hue::light_yellow
+         << "Sort students by average mark   ->   SORT AVG" << endl
+         << "Sort students by subject mark   ->   SORT \"Subject\"" << endl
+         << "Back to menu                    ->   BACK" << hue::white << endl;
 }
 
 void resetData(vector<Student> &students, vector<string> &subjects, bool &ended)
@@ -396,28 +440,25 @@ void subjectManagement(vector<Student> &students, vector<string> &subjects, bool
 
     if (inputWords[0] == "ADD")
     {
-        vector<string> _subjects;
-        for (int x = 0; x < _subjects.size(); x++)
-        {
-            _subjects[x] = toLowerCase(subjects[x]);
-        }
-
         // check if the subject already exists otherwise add it
-        if (find(_subjects.begin(), _subjects.end(), toLowerCase(inputWords[1])) == subjects.end() && inputWords.size() == 2)
+        if (find(subjects.begin(), subjects.end(), inputWords[1]) == subjects.end())
         {
-            subjects.push_back(inputWords[1]);
-
-            vector<double> _marks;
-
-            // Add the subject to all the students
-            for (int i = 0; i < subjects.size(); i++)
+            if (inputWords.size() == 2)
             {
-                _marks.push_back(0);
-            }
+                subjects.push_back(inputWords[1]);
 
-            for (int i = 0; i < students.size(); i++)
-            {
-                students[i].marks = _marks;
+                vector<double> _marks;
+
+                // Add the subject to all the students
+                for (int i = 0; i < subjects.size(); i++)
+                {
+                    _marks.push_back(0);
+                }
+
+                for (int i = 0; i < students.size(); i++)
+                {
+                    students[i].marks = _marks;
+                }
             }
         }
         else
@@ -460,6 +501,7 @@ void subjectManagement(vector<Student> &students, vector<string> &subjects, bool
         system("CLS");
     }
 
+    calcAvgMarks(students);
     writeData(students, subjects);
 }
 
@@ -547,6 +589,7 @@ void studentManagement(vector<Student> &students, vector<string> &subjects, bool
         system("CLS");
     }
 
+    calcAvgMarks(students);
     writeData(students, subjects);
 }
 
@@ -609,12 +652,12 @@ void searchStudents(vector<Student> &students, vector<string> &subjects, vector<
         Sleep(2000);
     }
 
-    printStudents(search, subjects);
+    calcAvgMarks(students);
 }
 
-void sortStudents(vector<Student> &students, vector<string> &subjects, bool &ended)
+void sortStudents(vector<Student> &students, vector<string> &subjects, vector<Student> &srtStudents, bool &ended)
 {
-    printStudents(students, subjects);
+    printStudents(srtStudents, subjects);
 
     // input, inputWords
     string input;
@@ -631,16 +674,30 @@ void sortStudents(vector<Student> &students, vector<string> &subjects, bool &end
     if (inputWords[0] == "SORT" && inputWords.size() == 2)
     {
         string sortType = inputWords[1];
+
+        calcAvgMarks(students);
+
         if (sortType == "AVG")
         {
-            sort(students.begin(), students.end(), greater<double>());
+            sort(srtStudents.begin(), srtStudents.end(), [](const Student &i1, const Student &i2)
+                 { return i1.avgMark > i2.avgMark; });
         }
-        for (int i = 0; i < subjects.size(); i++)
+        else
         {
-            if (toLowerCase(sortType) == toLowerCase(subjects[i]))
+            for (int i = 0; i < subjects.size(); i++)
             {
-                sort(students.begin(), students.end(), greater<double>());
+                if (toLowerCase(sortType) == toLowerCase(subjects[i]))
+                {
+                    for (int j = 0; j < srtStudents.size(); j++)
+                    {
+                        srtStudents[j].sortMark = srtStudents[j].marks[i];
+                    }
+                }
             }
+
+            // sort based on subject marks
+            sort(srtStudents.begin(), srtStudents.end(), [](const Student &i1, const Student &i2)
+                 { return i1.sortMark > i2.sortMark; });
         }
     }
     else if (inputWords[0] == "BACK")
@@ -654,8 +711,6 @@ void sortStudents(vector<Student> &students, vector<string> &subjects, bool &end
         Sleep(2000);
         system("CLS");
     }
-
-    writeData(students, subjects);
 }
 
 int main()
@@ -667,9 +722,16 @@ int main()
     while (true)
     {
         readData(students, subjects);
+        calcAvgMarks(students);
         printStudents(students, subjects);
 
-        cout << "[1] Student Management\n[2] Subject Management\n[3] Reset Data\n[4] Search\n[5] Sort\n[6] Exit The Program\n\n";
+        cout
+            << dye::yellow("[1]") << dye::aqua(" Student Management\n")
+            << dye::yellow("[2]") << dye::aqua(" Subject Management\n")
+            << dye::yellow("[3]") << dye::aqua(" Search Students\n")
+            << dye::yellow("[4]") << dye::aqua(" Sort Students\n")
+            << dye::yellow("[5]") << dye::aqua(" Reset Data\n")
+            << dye::yellow("[6]") << dye::aqua(" Exit The Application\n\n\n");
         cout << "Please enter your choice: (Number Only) ";
 
         string input;
@@ -702,16 +764,6 @@ int main()
         {
             system("CLS");
 
-            while (ended != true)
-            {
-                resetData(students, subjects, ended);
-            }
-        }
-
-        else if (input == "4")
-        {
-            system("CLS");
-
             vector<Student> search;
 
             while (ended != true)
@@ -720,13 +772,26 @@ int main()
             }
         }
 
+        else if (input == "4")
+        {
+            system("CLS");
+
+            vector<Student> srtStudents;
+            srtStudents = students;
+
+            while (ended != true)
+            {
+                printStudents(srtStudents, subjects);
+                sortStudents(students, subjects, srtStudents, ended);
+            }
+        }
         else if (input == "5")
         {
             system("CLS");
 
             while (ended != true)
             {
-                sortStudents(students, subjects, ended);
+                resetData(students, subjects, ended);
             }
         }
 
