@@ -23,29 +23,36 @@ public:
 
 struct moreAvgMark
 {
-    inline bool operator()(const Student &a, const Student &b)
+    inline bool operator()(const Student& a, const Student& b)
     {
         return a.avgMark > b.avgMark;
     }
 };
 
-void calcAvgMarks(vector<Student> &students)
+void calcAvgMarks(vector<Student>& students, vector<string> &subjects)
 {
-
-    for (int i = 0; i < students.size(); i++)
-    {
-        double sum = 0;
-        double avg = 0;
-        for (int j = 0; j < students[i].marks.size(); j++)
+    if (subjects.size() > 0) {
+        for (int i = 0; i < students.size(); i++)
         {
-            sum += students[i].marks[j];
+            double sum = 0;
+            double avg = 0;
+            for (int j = 0; j < students[i].marks.size(); j++)
+            {
+                sum += students[i].marks[j];
+            }
+            avg = sum / (students[i].marks.size());
+            students[i].avgMark = avg;
         }
-        avg = sum / (students[i].marks.size());
-        students[i].avgMark = avg;
+    }
+    else {
+        for (int i = 0; i < students.size(); i++)
+        {
+            students[i].avgMark = 0;
+        }
     }
 }
 
-bool isEmpty(std::ifstream &pFile)
+bool isEmpty(std::ifstream& pFile)
 {
     return pFile.peek() == std::ifstream::traits_type::eof();
 }
@@ -90,7 +97,7 @@ vector<string> splitToWords(string text)
     return words;
 }
 
-void getSubjects(vector<string> &subjects)
+void getSubjects(vector<string>& subjects)
 {
     // get subjects from json file
     json j;
@@ -128,7 +135,7 @@ void setSubjects(vector<string> subjects)
     file.close();
 }
 
-void getStudents(vector<Student> &students)
+void getStudents(vector<Student>& students)
 {
     // get students from json file
     json j;
@@ -191,7 +198,7 @@ void writeData(vector<Student> students, vector<string> subjects)
     setStudents(students);
 }
 
-void readData(vector<Student> &students, vector<string> &subjects)
+void readData(vector<Student>& students, vector<string>& subjects)
 {
     getSubjects(subjects);
     getStudents(students);
@@ -227,13 +234,13 @@ void printStudents(vector<Student> students, vector<string> subjects)
     for (int i = 0; i < subjects.size(); i++)
     {
         cout << left
-             << setw(15)
-             << dye::light_green(subjects[i]);
+            << setw(15)
+            << dye::light_green(subjects[i]);
     }
     cout << left
-         << setw(15)
-         << dye::blue("Average Mark")
-         << endl;
+        << setw(15)
+        << dye::blue("Average Mark")
+        << endl;
 
     cout << "-----------------------------------";
 
@@ -301,52 +308,52 @@ void printSubjects(vector<string> subjects)
         }
     }
     cout << "\n\n\n\n\n"
-         << endl;
+        << endl;
 }
 
 void printStudentManagementGuide()
 {
     cout << hue::light_yellow
-         << "Add new student          ->   ADD \"First Name\" \"Last Name\"" << endl
-         << "Set one's mark           ->   SET \"Id\" \"Subject\" \"Mark\"" << endl
-         << "Delete a student's mark  ->   CLR \"Id\" \"Subject\"" << endl
-         << "Delete a student         ->   DEL \"Id\"" << endl
-         << "Back to menu             ->   BACK" << hue::white << endl;
+        << "Add new student          ->   ADD \"First Name\" \"Last Name\"" << endl
+        << "Set one's mark           ->   SET \"Id\" \"Subject\" \"Mark\"" << endl
+        << "Delete a student's mark  ->   CLR \"Id\" \"Subject\"" << endl
+        << "Delete a student         ->   DEL \"Id\"" << endl
+        << "Back to menu             ->   BACK" << hue::white << endl;
 }
 
 void printSubjectManagementGuide()
 {
     cout << hue::light_yellow
-         << "Add new subject          ->   ADD \"Subject\"" << endl
-         << "Delete a subject         ->   DEL \"Subject\"" << endl
-         << "Back to menu             ->   BACK" << hue::white << endl;
+        << "Add new subject          ->   ADD \"Subject\"" << endl
+        << "Delete a subject         ->   DEL \"Subject\"" << endl
+        << "Back to menu             ->   BACK" << hue::white << endl;
 }
 
 void printResetDataGuide()
 {
     cout << hue::light_yellow
-         << "Remove all students      ->   REM students" << endl
-         << "Remove all subjects      ->   REM subjects" << endl
-         << "Back to menu             ->   BACK" << hue::white << endl;
+        << "Remove all students      ->   REM students" << endl
+        << "Remove all subjects      ->   REM subjects" << endl
+        << "Back to menu             ->   BACK" << hue::white << endl;
 }
 
 void printSearchStudentsGuide()
 {
     cout << hue::light_yellow
-         << "Search by first name     ->   SEARCH \"First Name\"" << endl
-         << "Search by full name      ->   SEARCH \"First Name\" \"Last Name\"" << endl
-         << "Back to menu             ->   BACK" << hue::white << endl;
+        << "Search by first name     ->   SEARCH \"First Name\"" << endl
+        << "Search by full name      ->   SEARCH \"First Name\" \"Last Name\"" << endl
+        << "Back to menu             ->   BACK" << hue::white << endl;
 }
 
 void printSortStudentsGuide()
 {
     cout << hue::light_yellow
-         << "Sort students by average mark   ->   SORT AVG" << endl
-         << "Sort students by subject mark   ->   SORT \"Subject\"" << endl
-         << "Back to menu                    ->   BACK" << hue::white << endl;
+        << "Sort students by average mark   ->   SORT AVG" << endl
+        << "Sort students by subject mark   ->   SORT \"Subject\"" << endl
+        << "Back to menu                    ->   BACK" << hue::white << endl;
 }
 
-void resetData(vector<Student> &students, vector<string> &subjects, bool &ended)
+void resetData(vector<Student>& students, vector<string>& subjects, bool& ended)
 {
     system("CLS");
 
@@ -421,7 +428,7 @@ void resetData(vector<Student> &students, vector<string> &subjects, bool &ended)
     writeData(students, subjects);
 }
 
-void subjectManagement(vector<Student> &students, vector<string> &subjects, bool &ended)
+void subjectManagement(vector<Student>& students, vector<string>& subjects, bool& ended)
 {
     system("CLS");
     printSubjects(subjects);
@@ -501,11 +508,11 @@ void subjectManagement(vector<Student> &students, vector<string> &subjects, bool
         system("CLS");
     }
 
-    calcAvgMarks(students);
+    calcAvgMarks(students, subjects);
     writeData(students, subjects);
 }
 
-void studentManagement(vector<Student> &students, vector<string> &subjects, bool &ended)
+void studentManagement(vector<Student>& students, vector<string>& subjects, bool& ended)
 {
     printStudents(students, subjects);
 
@@ -589,12 +596,14 @@ void studentManagement(vector<Student> &students, vector<string> &subjects, bool
         system("CLS");
     }
 
-    calcAvgMarks(students);
+    calcAvgMarks(students, subjects);
     writeData(students, subjects);
 }
 
-void searchStudents(vector<Student> &students, vector<string> &subjects, vector<Student> &search, bool &ended)
+void searchStudents(vector<Student>& students, vector<string>& subjects, vector<Student>& searchResults, bool& ended)
 {
+    printStudents(searchResults, subjects);
+
     string input;
     vector<string> inputWords;
 
@@ -609,7 +618,7 @@ void searchStudents(vector<Student> &students, vector<string> &subjects, vector<
     {
         if (inputWords.size() == 2)
         {
-            search.clear();
+            searchResults.clear();
             string fn, ln;
 
             for (int i = 0; i < students.size(); i++)
@@ -619,13 +628,13 @@ void searchStudents(vector<Student> &students, vector<string> &subjects, vector<
 
                 if (fn == toLowerCase(inputWords[1]) || ln == toLowerCase(inputWords[1]))
                 {
-                    search.push_back(students[i]);
+                    searchResults.push_back(students[i]);
                 }
             }
         }
         else if (inputWords.size() == 3)
         {
-            search.clear();
+            searchResults.clear();
             string fn, ln;
 
             for (int i = 0; i < students.size(); i++)
@@ -635,9 +644,13 @@ void searchStudents(vector<Student> &students, vector<string> &subjects, vector<
 
                 if (fn == inputWords[1] && ln == inputWords[2])
                 {
-                    search.push_back(students[i]);
+                    searchResults.push_back(students[i]);
                 }
             }
+        }
+        if (searchResults.size() == 0) {
+            cout << "\nNo Search Results!";
+            Sleep(1000);
         }
     }
 
@@ -652,10 +665,10 @@ void searchStudents(vector<Student> &students, vector<string> &subjects, vector<
         Sleep(2000);
     }
 
-    calcAvgMarks(students);
+    calcAvgMarks(students, subjects);
 }
 
-void sortStudents(vector<Student> &students, vector<string> &subjects, vector<Student> &srtStudents, bool &ended)
+void sortStudents(vector<Student>& students, vector<string>& subjects, vector<Student>& srtStudents, bool& ended)
 {
     printStudents(srtStudents, subjects);
 
@@ -675,12 +688,12 @@ void sortStudents(vector<Student> &students, vector<string> &subjects, vector<St
     {
         string sortType = inputWords[1];
 
-        calcAvgMarks(students);
+    calcAvgMarks(students, subjects);
 
         if (sortType == "AVG")
         {
-            sort(srtStudents.begin(), srtStudents.end(), [](const Student &i1, const Student &i2)
-                 { return i1.avgMark > i2.avgMark; });
+            sort(srtStudents.begin(), srtStudents.end(), [](const Student& i1, const Student& i2)
+                { return i1.avgMark > i2.avgMark; });
         }
         else
         {
@@ -696,8 +709,8 @@ void sortStudents(vector<Student> &students, vector<string> &subjects, vector<St
             }
 
             // sort based on subject marks
-            sort(srtStudents.begin(), srtStudents.end(), [](const Student &i1, const Student &i2)
-                 { return i1.sortMark > i2.sortMark; });
+            sort(srtStudents.begin(), srtStudents.end(), [](const Student& i1, const Student& i2)
+                { return i1.sortMark > i2.sortMark; });
         }
     }
     else if (inputWords[0] == "BACK")
@@ -722,7 +735,7 @@ int main()
     while (true)
     {
         readData(students, subjects);
-        calcAvgMarks(students);
+        calcAvgMarks(students, subjects);
         printStudents(students, subjects);
 
         cout
